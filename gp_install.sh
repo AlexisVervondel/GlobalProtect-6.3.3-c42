@@ -1,11 +1,5 @@
 #!/bin/bash
 
-if [ "$(id -u)" == "0" ]; then
-    echo -e "\nGlobalProtect cannot be installed as a root user."
-    echo -e "Please install the agent as a user with admin privileges.\n"
-    exit 1
-fi
-
 # Detect Package Manager
 detect_package_manager() {
     if command -v dnf >/dev/null 2>&1; then
