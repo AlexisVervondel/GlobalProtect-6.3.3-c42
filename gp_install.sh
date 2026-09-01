@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ "$(id -u)" == "0" ]; then
+    echo -e "\nGlobalProtect cannot be installed as a root user."
+    echo -e "Please install the agent as a user with admin privileges.\n"
+    exit 1
+fi
+
 # Detect Package Manager
 detect_package_manager() {
     if command -v dnf >/dev/null 2>&1; then
@@ -21,7 +27,7 @@ detect_package_manager() {
         echo "Error: No supported package manager found"
         exit 1
     fi
-    
+
     echo "Detected package manager: $pkg_mgr_cmd"
 }
 
@@ -128,7 +134,7 @@ case $cmd_type in
                 install_success=false
             fi
         fi
-        ;;	
+        ;;
 
     arm)
         # ARM Install
@@ -153,7 +159,7 @@ case $cmd_type in
             fi
         fi
         ;;
-		
+
     aarch64)
         # AARCH64 Install
         if [ $pkg_mgr_type == "debian" ]; then
@@ -199,6 +205,18 @@ case $cmd_type in
                         gsettings set org.gnome.shell.extensions.topicons tray-pos 'right'
                         ;;
                     22)
+                        dpkg -s gnome-shell-extension-appindicator >/dev/null 2>&1
+                        if [ $? -eq 0 ]; then
+                            echo "GP Install WARNING: gnome-shell-extension-appindicator is installed."
+                            echo "This package may cause issues with GP UI and is not recommended."
+                        fi
+                        if ! sudo apt-get install -y gnome-shell-extension-manager >/dev/null 2>&1; then
+                            install_success=false
+                        fi
+                        ;;
+                    24)
+                        ;&
+                    26)
                         dpkg -s gnome-shell-extension-appindicator >/dev/null 2>&1
                         if [ $? -eq 0 ]; then
                             echo "GP Install WARNING: gnome-shell-extension-appindicator is installed."
@@ -298,7 +316,7 @@ case $cmd_type in
             exit 1
         fi
         ;;
-    
+
     usage)
         ;&
     *)
@@ -307,5 +325,5 @@ case $cmd_type in
         echo "  --arm:      ARM           (32 bit)"
         echo "  --aarch64:  ARM64/aarch64 (64 bit)"
         echo "  default:    UI"
-        ;;	
+        ;;
 esac
